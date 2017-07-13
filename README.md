@@ -1,8 +1,10 @@
 # deploy-scaleio
 
-This builds a ocker container that knows how to deploy a simple
+This builds a docker container that knows how to deploy a simple
 ScaleIO deployment on three nodes. This configuration is not production ready but
 can serve as a simple test bed
+
+It is assumed that each node has one device to add to the ScaleIO Pool, at /dev/sdb
 
 ```
 [user@host]$ docker build -t scaleio-deploy .
