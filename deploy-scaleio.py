@@ -143,8 +143,8 @@ class ScaleIODeployer:
         # security.bypass_certificate_check = true
         _config = '/opt/emc/scaleio/gateway/webapps/ROOT/WEB-INF/classes/gatewayUser.properties'
         _commands = []
-        _commands.append("sed -i 's|^mdm.ip.addresses.*|mdm.ip.addresses={},{}|' {}".format(args.IP[0], args.IP[1], _config))
-        _commands.append("sed -i 's|^security.bypass_certificate_check.*|security.bypass_certificate_check=true|' {}".format( _config))
+        #_commands.append("sed -i 's|^mdm.ip.addresses.*|mdm.ip.addresses={},{}|' {}".format(args.IP[0], args.IP[1], _config))
+        #_commands.append("sed -i 's|^security.bypass_certificate_check.*|security.bypass_certificate_check=true|' {}".format( _config))
         _commands.append("systemctl restart scaleio-gateway")
         self.node_execute_multiple(args.IP[2], args.USERNAME, args.PASSWORD, _commands)
         return
