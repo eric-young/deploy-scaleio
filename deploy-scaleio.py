@@ -129,15 +129,24 @@ class ScaleIODeployer:
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|eth1|{}|g' all".format(interface))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|5_node|3_node|g' all")
         _commands.append("cd /git/ansible-scaleio && ansible-playbook -i hosts site-no-gui-no-sdc.yml")
-        _commands.append("cat /git/ansible-scaleio/hosts")
         self.node_execute_multiple(ipaddr, args.USERNAME, args.PASSWORD, _commands)
 
-    def run_postinstall(self, ipaddr, args):
+    def setup_gateway(self, args):
         """
-        Perform any post-install functions
+        Setup the gateway
 
-        This includes installing utilities
+        The gateway is on the last IP address (args.IP[2])
+        and the MDMs are on the first two
         """
+        # edit the gateway properties file and restart the gateway
+        # mdm.ip.addresses = <addresses of node0,node1>
+        # security.bypass_certificate_check = true
+        _config = '/opt/emc/scaleio/gateway/webapps/ROOT/WEB-INF/classes/gatewayUser.properties'
+        _commands = []
+        _commands.append("sed -i 's|^mdm.ip.addresses.*|mdm.ip.addresses={},{}|' {}".format(args.IP[0], args.IP[1], _config))
+        _commands.append("sed -i 's|^security.bypass_certificate_check.*|security.bypass_certificate_check=true|' {}".format( _config))
+        _commands.append("systemctl restart scaleio-gateway")
+        self.node_execute_multiple(args.IP[2], args.USERNAME, args.PASSWORD, _commands)
         return
 
     def process(self):
@@ -152,7 +161,7 @@ class ScaleIODeployer:
 
         # run anything that needs to be run on all hosts
         for ipaddress in args.IP:
-            self.run_postinstall(ipaddress, args)
+            self.setup_gateway(args)
 
 
 # Start program
