@@ -159,9 +159,8 @@ class ScaleIODeployer:
         self.setup_all_nodes(args)
         self.setup_scaleio(args.IP[0], args)
 
-        # run anything that needs to be run on all hosts
-        for ipaddress in args.IP:
-            self.setup_gateway(args)
+        # setup the gateway node
+        self.setup_gateway(args)
 
 
 # Start program
