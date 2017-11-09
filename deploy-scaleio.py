@@ -43,13 +43,14 @@ class ScaleIODeployer:
         attempt=1
         connected = False
 
+        ssh = RemoteServer(None,
+                           username=username,
+                           password=password,
+                           log_folder_path='/tmp',
+                           server_has_dns=False)
         while (attempt<=numTries and connected==False):
             print("Connecting to: %s" % (ipaddr))
-            ssh = RemoteServer(None,
-                               username=username,
-                               password=password,
-                               log_folder_path='/tmp',
-                               server_has_dns=False)
+
             connected, err = ssh.connect_server(ipaddr, False)
             if connected == False:
                 time.sleep(5)
