@@ -87,9 +87,10 @@ class ScaleIODeployer:
         """
         _commands = []
         _commands.append("(echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections) || true")
+        _commands.append("(apt-add-repository -y -u ppa:ansible/ansible) || true")
         _commands.append('apt-get install -y ansible '
-                     ' || '
-                     'yum install -y ansible')
+                         ' || '
+                         'yum install -y ansible')
 
         for ipaddr in args.IP:
             self.node_execute_multiple(ipaddr, args.USERNAME, args.PASSWORD, _commands)
