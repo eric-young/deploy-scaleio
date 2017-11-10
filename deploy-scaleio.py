@@ -18,6 +18,11 @@ class ScaleIODeployer:
     def __init__(self):
         self.client = None
 
+    def _get_first_token(self, text):
+        if len(text.split()) > 0:
+	    return(text.split()[0])
+        return None
+
     def setup_arguments(self):
         parser = argparse.ArgumentParser(description='Clone and configure a VM')
 
@@ -111,6 +116,26 @@ class ScaleIODeployer:
         rc, interface, error = self.node_execute_command(ipaddr, args.USERNAME, args.PASSWORD, command)
         interface = interface.split(':')[0]
 
+        # get the device we will add to scaleio
+        # this is the user specified value (on the command line)
+        #    - if that device is specified in the /etc/raw-devices file
+        #    or
+        #    - if the /etc/raw-devices file does not exist
+        # otherwise, it is the first device in /etc/raw-devices
+        siodevice = ""
+        command = 'grep {} /etc/raw-devices'.format(args.scaleio_device)
+        rc, siodevice, error = self.node_execute_command(ipaddr, args.USERNAME, args.PASSWORD, command)
+        siodevice=self._get_first_token(siodevice)
+        if (siodevice is None or siodevice == ""):
+            command = 'head -n 1 /etc/raw-devices 2>/dev/null || echo {}'.format(args.scaleio_device)
+            rc, siodevice, error = self.node_execute_command(ipaddr, args.USERNAME, args.PASSWORD, command)
+            siodevice=self._get_first_token(siodevice)
+        if (siodevice is None or siodevice == ""):
+            print("Unable to determine which device to add to scaleio")
+            raise Exception()
+
+	print("Will add {} to ScaleIO".format(siodevice))
+        
         _commands = []
         _commands.append('uptime')
 
@@ -130,7 +155,7 @@ class ScaleIODeployer:
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node0|{}|g' hosts".format(args.IP[0]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node1|{}|g' hosts".format(args.IP[1]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node2|{}|g' hosts".format(args.IP[2]))
-        _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|/dev/sdb|{}|g' all".format(args.scaleio_device))
+        _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|/dev/sdb|{}|g' all".format(siodevice))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|eth1|{}|g' all".format(interface))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|5_node|3_node|g' all")
         _commands.append("cd /git/ansible-scaleio && ansible-playbook -f 1 -i hosts site-no-gui-no-sdc.yml")
