@@ -32,6 +32,8 @@ class ScaleIODeployer:
         # scaleio options
         parser.add_argument('--package_url', dest='PACKAGE_URL', action='store', required=True,
                         help='URL to install packages')
+        parser.add_argument('--scaleio_device', action='store', default='/dev/sdb',
+                        help='Device name to add to ScaleIO Storage Pool, default is /dev/sdb')
 
         # return the parser object
         return parser
@@ -128,6 +130,7 @@ class ScaleIODeployer:
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node0|{}|g' hosts".format(args.IP[0]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node1|{}|g' hosts".format(args.IP[1]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node2|{}|g' hosts".format(args.IP[2]))
+        _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|/dev/sdb|{}|g' all".format(args.scaleio_device))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|eth1|{}|g' all".format(interface))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|5_node|3_node|g' all")
         _commands.append("cd /git/ansible-scaleio && ansible-playbook -f 1 -i hosts site-no-gui-no-sdc.yml")
