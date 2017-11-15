@@ -134,8 +134,8 @@ class ScaleIODeployer:
             print("Unable to determine which device to add to scaleio")
             raise Exception()
 
-	print("Will add {} to ScaleIO".format(siodevice))
-        
+	    print("Will add {} to ScaleIO".format(siodevice))
+
         _commands = []
         _commands.append('uptime')
 
