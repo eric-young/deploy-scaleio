@@ -39,6 +39,10 @@ class ScaleIODeployer:
                         help='URL to install packages')
         parser.add_argument('--scaleio_device', action='store', default='/dev/sdb',
                         help='Device name to add to ScaleIO Storage Pool, default is /dev/sdb')
+        parser.add_argument('--domain', action='store', default='domain1',
+                        help='Protection Domain [name] to create, default is domain1')
+        parser.add_argument('--pool', action='store', default='pool1',
+                        help='Storage Pool [name] to create, default is pool1')
 
         # return the parser object
         return parser
@@ -155,6 +159,8 @@ class ScaleIODeployer:
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node0|{}|g' hosts".format(args.IP[0]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node1|{}|g' hosts".format(args.IP[1]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node2|{}|g' hosts".format(args.IP[2]))
+        _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|domain1|{}|g' all".format(args.domain))
+        _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|pool1|{}|g' all".format(args.pool))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|/dev/sdb|{}|g' all".format(siodevice))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|eth1|{}|g' all".format(interface))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|5_node|3_node|g' all")
