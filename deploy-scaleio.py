@@ -43,6 +43,10 @@ class ScaleIODeployer:
                         help='Protection Domain [name] to create, default is domain1')
         parser.add_argument('--pool', action='store', default='pool1',
                         help='Storage Pool [name] to create, default is pool1')
+        parser.add_argument('--gateway_http_port', action='store', default='80',
+                        help='Port for gateway http traffic')
+        parser.add_argument('--gateway_ssl_port', action='store', default='443',
+                        help='Port for gateway https/ssl traffic')
 
         # return the parser object
         return parser
@@ -126,6 +130,10 @@ class ScaleIODeployer:
         #    or
         #    - if the /etc/raw-devices file does not exist
         # otherwise, it is the first device in /etc/raw-devices
+        #
+        # NOTE: another way to detect not partioned disks is to run
+        #       partprobe -d -s <device>
+        #       Unpartitioned devices will return NO output
         siodevice = ""
         command = 'grep {} /etc/raw-devices'.format(args.scaleio_device)
         rc, siodevice, error = self.node_execute_command(ipaddr, args.USERNAME, args.PASSWORD, command)
@@ -159,6 +167,8 @@ class ScaleIODeployer:
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node0|{}|g' hosts".format(args.IP[0]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node1|{}|g' hosts".format(args.IP[1]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node2|{}|g' hosts".format(args.IP[2]))
+        _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|80|{}|g' all".format(args.gateway_http_port))
+        _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|443|{}|g' all".format(args.gateway_ssl_port))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|domain1|{}|g' all".format(args.domain))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|pool1|{}|g' all".format(args.pool))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|/dev/sdb|{}|g' all".format(siodevice))
