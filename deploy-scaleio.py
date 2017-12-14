@@ -163,7 +163,7 @@ class ScaleIODeployer:
                          "wget -r --no-parent -A '*.rpm' {} || true".format(args.PACKAGE_URL))
         _commands.append("cd /git/temp && find . -type f -exec mv {} /git/files \;")
         _commands.append("rm -rf /git/temp")
-        _commands.append("cd /git/ansible-scaleio && cp hosts-5_node hosts")
+        _commands.append("cd /git/ansible-scaleio && cp hosts-3_node hosts")
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node0|{}|g' hosts".format(args.IP[0]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node1|{}|g' hosts".format(args.IP[1]))
         _commands.append("cd /git/ansible-scaleio && sed -i 's|node2|{}|g' hosts".format(args.IP[2]))
