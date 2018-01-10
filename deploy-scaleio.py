@@ -174,7 +174,7 @@ class ScaleIODeployer:
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|/dev/sdb|{}|g' all".format(siodevice))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|eth1|{}|g' all".format(interface))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|5_node|3_node|g' all")
-        _commands.append("cd /git/ansible-scaleio && ansible-playbook -f 1 -i hosts site-no-gui-no-sdc.yml")
+        _commands.append("cd /git/ansible-scaleio && ansible-playbook -vv -f 1 -i hosts site-no-gui-no-sdc.yml")
         self.node_execute_multiple(ipaddr, args.USERNAME, args.PASSWORD, _commands)
 
     def setup_gateway(self, args):
