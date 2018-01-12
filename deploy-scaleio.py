@@ -62,15 +62,20 @@ class ScaleIODeployer:
         attempt=1
         connected = False
 
-        ssh = RemoteServer(None,
-                           username=username,
-                           password=password,
-                           log_folder_path='/tmp',
-                           server_has_dns=False)
         while (attempt<=numTries and connected==False):
+            ssh = RemoteServer(None,
+                               username=username,
+                               password=password,
+                               log_folder='/tmp',
+                               server_has_dns=False)
             print("Connecting to: %s" % (ipaddr))
 
-            connected, err = ssh.connect_server(ipaddr, False)
+            try:
+                connected, err = ssh.connect_server(ipaddr, ping=False)
+            except Exception as e:
+                print("Unable to connect. Will try again.")
+                connected = False
+
             if connected == False:
                 time.sleep(5)
                 attempt = attempt + 1
@@ -178,9 +183,17 @@ class ScaleIODeployer:
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|/dev/sdb|{}|g' all".format(siodevice))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|eth1|{}|g' all".format(interface))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|5_node|3_node|g' all")
-        if not args.preponly:
-            _commands.append("cd /git/ansible-scaleio && ansible-playbook -f 1 -i hosts site-no-gui-no-sdc.yml")
+
         self.node_execute_multiple(ipaddr, args.USERNAME, args.PASSWORD, _commands)
+
+        if not args.preponly:
+            self.node_execute_command(ipaddr,
+                                      args.USERNAME,
+                                      args.PASSWORD,
+                                      "cd /git/ansible-scaleio && ansible-playbook -f 1 -i hosts site-no-gui-no-sdc.yml")
+        else:
+            print("To setup ScaleIO, log onto {} as root and run:".format(args.IP[0]))
+            print("  \"cd /git/ansible-scaleio && ansible-playbook -f 1 -i hosts site-no-gui-no-sdc.yml\"")
 
     def setup_gateway(self, args):
         """
