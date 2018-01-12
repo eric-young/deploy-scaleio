@@ -48,6 +48,10 @@ class ScaleIODeployer:
         parser.add_argument('--gateway_ssl_port', action='store', default='443',
                         help='Port for gateway https/ssl traffic')
 
+        # misc options
+        parser.add_argument('--preponly', action='store_true',
+                            help='Sets up the node to run ansible but does not invoke it')
+
         # return the parser object
         return parser
 
@@ -103,10 +107,7 @@ class ScaleIODeployer:
         """
         _commands = []
         _commands.append("(echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections) || true")
-        _commands.append("(apt-add-repository -y -u ppa:ansible/ansible) || true")
-        _commands.append('apt-get install -y ansible '
-                         ' || '
-                         'yum install -y ansible')
+
 
         for ipaddr in args.IP:
             self.node_execute_multiple(ipaddr, args.USERNAME, args.PASSWORD, _commands)
@@ -149,8 +150,10 @@ class ScaleIODeployer:
 	    print("Will add {} to ScaleIO".format(siodevice))
 
         _commands = []
-        _commands.append('uptime')
-
+        _commands.append("(apt-add-repository -y -u ppa:ansible/ansible) || true")
+        _commands.append('apt-get install -y ansible '
+                         ' || '
+                         'yum install -y ansible')
         _commands.append('cd /; mkdir git; chmod -R 777 /git')
         _commands.append("( apt-get update && apt-get install -y git wget ) || yum install -y git wget")
         _commands.append("cd /git && git clone https://github.com/eric-young/ansible-scaleio.git")
@@ -164,9 +167,10 @@ class ScaleIODeployer:
         _commands.append("cd /git/temp && find . -type f -exec mv {} /git/files \;")
         _commands.append("rm -rf /git/temp")
         _commands.append("cd /git/ansible-scaleio && cp hosts-3_node hosts")
-        _commands.append("cd /git/ansible-scaleio && sed -i 's|node0|{}|g' hosts".format(args.IP[0]))
-        _commands.append("cd /git/ansible-scaleio && sed -i 's|node1|{}|g' hosts".format(args.IP[1]))
-        _commands.append("cd /git/ansible-scaleio && sed -i 's|node2|{}|g' hosts".format(args.IP[2]))
+        _commands.append("cd /git/ansible-scaleio && sed -i 's|NODE0|{}|g' hosts".format(args.IP[0]))
+        _commands.append("cd /git/ansible-scaleio && sed -i 's|NODE1|{}|g' hosts".format(args.IP[1]))
+        _commands.append("cd /git/ansible-scaleio && sed -i 's|NODE2|{}|g' hosts".format(args.IP[2]))
+        _commands.append("cd /git/ansible-scaleio && sed -i 's|PASSWORD|{}|g' hosts".format(args.PASSWORD))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|80|{}|g' all".format(args.gateway_http_port))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|443|{}|g' all".format(args.gateway_ssl_port))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|domain1|{}|g' all".format(args.domain))
@@ -174,7 +178,8 @@ class ScaleIODeployer:
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|/dev/sdb|{}|g' all".format(siodevice))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|eth1|{}|g' all".format(interface))
         _commands.append("cd /git/ansible-scaleio/group_vars && sed -i 's|5_node|3_node|g' all")
-        _commands.append("cd /git/ansible-scaleio && ansible-playbook -f 1 -i hosts site-no-gui-no-sdc.yml")
+        if not args.preponly:
+            _commands.append("cd /git/ansible-scaleio && ansible-playbook -f 1 -i hosts site-no-gui-no-sdc.yml")
         self.node_execute_multiple(ipaddr, args.USERNAME, args.PASSWORD, _commands)
 
     def setup_gateway(self, args):
@@ -184,6 +189,9 @@ class ScaleIODeployer:
         The gateway is on the last IP address (args.IP[2])
         and the MDMs are on the first two
         """
+        if args.preponly:
+            return
+
         # edit the gateway properties file and restart the gateway
         # mdm.ip.addresses = <addresses of node0,node1>
         # security.bypass_certificate_check = true
