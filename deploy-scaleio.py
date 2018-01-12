@@ -189,6 +189,9 @@ class ScaleIODeployer:
         The gateway is on the last IP address (args.IP[2])
         and the MDMs are on the first two
         """
+        if args.preponly:
+            return
+
         # edit the gateway properties file and restart the gateway
         # mdm.ip.addresses = <addresses of node0,node1>
         # security.bypass_certificate_check = true
