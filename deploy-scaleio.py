@@ -18,6 +18,26 @@ class ScaleIODeployer:
     def __init__(self):
         self.client = None
 
+    def sles_only_command(self, command):
+        platform_specific="if [ -f /etc/SuSE-release ]; then {}; fi".format(command)
+        return platform_specific
+
+    def ubuntu_only_command(self, command):
+        platform_specific="if [ -f /etc/lsb-release ]; then {}; fi".format(command)
+        return platform_specific
+
+    def centos_or_redhat_only_command(self, command):
+        platform_specific="if [ -f /etc/centos-release -o -f /etc/redhat-release ]; then {}; fi".format(command)
+        return platform_specific
+
+    def centos_only_command(self, command):
+        platform_specific="if [ -f /etc/centos-release ]; then {}; fi".format(command)
+        return platform_specific
+
+    def redhat_only_command(self, command):
+        platform_specific="if [ -f /etc/redhat-release ]; then {}; fi".format(command)
+        return platform_specific
+
     def _get_first_token(self, text):
         if len(text.split()) > 0:
 	    return(text.split()[0])
@@ -111,8 +131,7 @@ class ScaleIODeployer:
         Install pre-reqs
         """
         _commands = []
-        _commands.append("(echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections) || true")
-
+        _commands.append(self.ubuntu_only_command("echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections"))
 
         for ipaddr in args.IP:
             self.node_execute_multiple(ipaddr, args.USERNAME, args.PASSWORD, _commands)
@@ -155,12 +174,13 @@ class ScaleIODeployer:
 	    print("Will add {} to ScaleIO".format(siodevice))
 
         _commands = []
-        _commands.append("(apt-add-repository -y -u ppa:ansible/ansible) || true")
-        _commands.append('apt-get install -y ansible '
-                         ' || '
-                         'yum install -y ansible')
+        # install some pre-reqs
+        _commands.append(self.ubuntu_only_command("apt-add-repository -y -u ppa:ansible/ansible"))
+        _commands.append(self.ubuntu_only_command()'apt-get install -y ansible git wget'))
+        _commands.append(self.centos_or_redhat_only_command('yum install -y ansible git wget'))
+        _commands.append(self.sles_only_command("zypper install python-setuptools && easy_install_pip && pip install paramiko ansible"))
+        # clone the ansible-scaleio playbooks and customize them
         _commands.append('cd /; mkdir git; chmod -R 777 /git')
-        _commands.append("( apt-get update && apt-get install -y git wget ) || yum install -y git wget")
         _commands.append("cd /git && git clone https://github.com/eric-young/ansible-scaleio.git")
         _commands.append("mkdir -p /git/files && mkdir -p /git/temp")
         _commands.append("cd /git/temp && "
