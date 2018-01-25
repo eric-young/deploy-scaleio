@@ -176,7 +176,7 @@ class ScaleIODeployer:
         _commands = []
         # install some pre-reqs
         _commands.append(self.ubuntu_only_command("apt-add-repository -y -u ppa:ansible/ansible"))
-        _commands.append(self.ubuntu_only_command()'apt-get install -y ansible git wget'))
+        _commands.append(self.ubuntu_only_command('apt-get install -y ansible git wget'))
         _commands.append(self.centos_or_redhat_only_command('yum install -y ansible git wget'))
         _commands.append(self.sles_only_command("zypper install python-setuptools && easy_install_pip && pip install paramiko ansible"))
         # clone the ansible-scaleio playbooks and customize them
