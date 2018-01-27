@@ -177,7 +177,9 @@ class ScaleIODeployer:
         # install some pre-reqs
         _commands.append(self.ubuntu_only_command("apt-add-repository -y -u ppa:ansible/ansible"))
         _commands.append(self.ubuntu_only_command('apt-get install -y ansible git wget'))
-        _commands.append(self.centos_or_redhat_only_command('yum install -y ansible git wget'))
+        _commands.append(self.centos_only_command('yum install -y ansible git wget'))
+        _commands.append(self.redhat_only_command('yum install -y git wget'))
+        _commands.append(self.redhat_only_command('(curl https://bootstrap.pypa.io/get-pip.py | python) && pip install ansible'))
         _commands.append(self.sles_only_command("zypper install -y python-setuptools && easy_install pip && pip install paramiko ansible"))
         # clone the ansible-scaleio playbooks and customize them
         _commands.append('cd /; mkdir git; chmod -R 777 /git')
